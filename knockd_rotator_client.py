@@ -32,12 +32,11 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
         "Warning: KNOCKD_ROTATOR_PERIOD_MODULO not set, using default of 21600 (6 hours)\n"
     )
 
-# Calculate the shared seed based on current timestamp modulo PERIOD_MODULO
+# Calculate the shared seed based on the current period
 current_timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-shared_seed = current_timestamp % PERIOD_MODULO
-assert (
-    shared_seed != 0
-), "current_timestamp % PERIOD_MODULO shouldn't be 0, use a lower PERIOD_MODULO"
+# Calculate the beginning of the current period
+period_start = (current_timestamp // PERIOD_MODULO) * PERIOD_MODULO
+shared_seed = period_start
 
 
 def generate_knock_sequence(service_name: str) -> str:
