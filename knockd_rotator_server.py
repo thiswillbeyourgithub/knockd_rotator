@@ -10,7 +10,7 @@ from typing import List, Tuple
 # Import necessary functions and constants from knockd_rotator_client.py
 from knockd_rotator_client import generate_knock_sequence, shared_seed
 
-__VERSION__: str = "1.0.0"
+__VERSION__: str = "1.0.1"
 
 DEFAULT_CONFIG_FILE = "/etc/knockd.conf"
 
