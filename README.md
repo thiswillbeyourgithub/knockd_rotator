@@ -4,7 +4,7 @@ A security-enhanced port knocking system with rotating knock sequences.
 
 ## Overview
 
-This project provides tools to enhance the security of [knockd](https://zeroflux.org/projects/knock) port knocking by automatically rotating knock sequences as often as you want. This prevents replay attacks and significantly improves the security of your port knocking setup.
+This project provides tools to enhance the security of [knockd](https://man.archlinux.org/man/knockd.1.en) port knocking by automatically rotating knock sequences as often as you want. This prevents replay attacks and significantly improves the security of your port knocking setup.
 
 The rotating sequence is deterministically generated based on:
 - The timestamp at the beginning of the current time period (UNIX seconds floored to a multiple of the period length)
