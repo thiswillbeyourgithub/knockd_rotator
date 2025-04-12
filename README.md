@@ -47,7 +47,7 @@ A server-side tool that:
 
 The system is configured through environment variables:
 
-- `KNOCKD_ROTATOR_LENGTH`: Number of ports in the knock sequence (default: 6)
+- `KNOCKD_ROTATOR_LENGTH`: Number of ports in the knock sequence (default: 10)
 - `KNOCKD_ROTATOR_SALT`: The shared secret used to generate sequences (required, no default)
 - `KNOCKD_ROTATOR_PORT_MODULO`: Controls TCP/UDP protocol selection:
   - When `KNOCKD_ROTATOR_PORT_MODULO = 0` (default): All knocks use TCP protocol

@@ -11,7 +11,7 @@ __VERSION__: str = "1.0.0"
 
 # Constants for knock sequence generation
 # The sequence length determines how many ports are in the knock sequence
-SEQUENCE_LENGTH = int(os.environ.get("KNOCKD_ROTATOR_LENGTH", 6))
+SEQUENCE_LENGTH = int(os.environ.get("KNOCKD_ROTATOR_LENGTH", 10))
 
 # The salt provides additional security against sequence guessing
 SALT = os.environ.get("KNOCKD_ROTATOR_SALT")
