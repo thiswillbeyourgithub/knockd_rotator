@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+import argparse
+import subprocess
+import time
+from typing import List, Tuple
+
+# Import necessary functions and constants from knockd_rotator_client.py
+from knockd_rotator_client import generate_knock_sequence, shared_seed
+
+__VERSION__: str = "1.0.0"
+
+DEFAULT_CONFIG_FILE = "/etc/knockd.conf"
+
+
+def parse_sequence(sequence_str: str) -> List[Tuple[int, str]]:
+    """
+    Parse a knockd sequence string into port and protocol tuples.
+
+    Args:
+        sequence_str: The sequence string from knockd.conf (space or comma separated)
+
+    Returns:
+        List of (port, protocol) tuples
+    """
+    # Support both comma and space separated formats
+    if "," in sequence_str:
+        parts = sequence_str.split(",")
+    else:
+        parts = sequence_str.split()
+
+    result = []
+
+    for part in parts:
+        part = part.strip()
+        if ":" in part:
+            port_str, protocol = part.split(":")
+            port = int(port_str.strip())
+        else:
+            # If no protocol specified, default to tcp
+            port = int(part)
+            protocol = "tcp"
+
+        result.append((port, protocol))
+
+    return result
+
+
+def process_knockd_conf(config_file: str, dry_run: bool = False) -> bool:
+    """
+    Process the knockd.conf file and update time based sequences.
+
+    Args:
+        config_file: Path to the knockd.conf file
+        dry_run: If True, don't write changes back to the file
+    """
+    try:
+        with open(config_file, "r") as f:
+            lines = f.readlines()
+    except Exception as e:
+        print(f"Error reading {config_file}: {e}")
+        sys.exit(1)
+
+    print(f"Using shared seed: {shared_seed} (Based on current time period)")
+
+    # Track state
+    current_section = None
+    modified_lines = []
+    old_sequences = {}
+    new_sequences = {}
+    changes_needed = False
+
+    # Regular expressions for matching sections and sequences
+    section_pattern = re.compile(r"^\s*\[(.*_ROTATOR)\]\s*$")
+    sequence_pattern = re.compile(r"^\s*sequence\s*=\s*(.+)\s*$")
+
+    # Process each line
+    for i, line in enumerate(lines):
+        # Skip comment lines
+        if line.lstrip().startswith("#"):
+            modified_lines.append(line)
+            continue
+
+        # Check if line is a section header
+        section_match = section_pattern.match(line)
+        if section_match:
+            if current_section and current_section not in old_sequences:
+                print(f"Warning: No sequence found for section {current_section}")
+
+            current_section = section_match.group(1)
+            print(f"Found rotator sequence section: {current_section}")
+            modified_lines.append(line)
+            continue
+
+        # Check if line is a sequence and we're in a rotator sequence section
+        if current_section and sequence_pattern.match(line):
+            seq_match = sequence_pattern.match(line)
+            old_sequence = seq_match.group(1)
+            old_sequences[current_section] = old_sequence
+
+            # Generate new sequence for this section
+            new_sequence = generate_knock_sequence(current_section)
+            # Convert space-separated to comma-separated format
+            new_sequence = new_sequence.replace(" ", ",")
+            new_sequences[current_section] = new_sequence
+
+            # Print debug info
+            print(f"  Old sequence for {current_section}: {old_sequence}")
+            print(f"  New sequence for {current_section}: {new_sequence}")
+
+            # Check if sequence needs to be updated
+            if old_sequence != new_sequence:
+                changes_needed = True
+                # Replace the sequence
+                indent = re.match(r"(\s*)", line).group(1)
+                modified_lines.append(f"{indent}sequence    = {new_sequence}\n")
+            else:
+                print(f"  Sequence unchanged for {current_section}")
+                modified_lines.append(line)
+
+            # If we find another section, stop being in the current section
+            if i + 1 < len(lines) and "[" in lines[i + 1] and "]" in lines[i + 1]:
+                current_section = None
+        else:
+            modified_lines.append(line)
+
+    # Verify all sections have sequences
+    if current_section and current_section not in old_sequences:
+        print(f"Warning: No sequence found for section {current_section}")
+
+    # Verify sequences are unique
+    if not new_sequences:
+        print("Warning: No rotator sequence sections found in the config file")
+
+    unique_sequences = set(new_sequences.values())
+    if len(unique_sequences) < len(new_sequences):
+        print("Warning: Not all generated sequences are unique")
+        # Print which sequences are duplicated
+        sequence_counts = {}
+        for section, sequence in new_sequences.items():
+            if sequence not in sequence_counts:
+                sequence_counts[sequence] = []
+            sequence_counts[sequence].append(section)
+
+        for sequence, sections in sequence_counts.items():
+            if len(sections) > 1:
+                print(
+                    f"  Sequence {sequence} is used by sections: {', '.join(sections)}"
+                )
+
+    # Write back the modified file if not in dry-run mode and changes are needed
+    if not changes_needed:
+        print("No changes needed - all sequences are already up to date")
+    elif not dry_run:
+        try:
+            with open(config_file, "w") as f:
+                f.writelines(modified_lines)
+            print(f"Updated {config_file} with new sequences")
+        except Exception as e:
+            print(f"Error writing to {config_file}: {e}")
+            sys.exit(1)
+    else:
+        print("Dry run - no changes were written to the file")
+
+    return changes_needed
+
+
+def check_knockd_service() -> bool:
+    """
+    Check if knockd service is running.
+
+    Returns:
+        True if running, False otherwise
+    """
+    try:
+        result = subprocess.run(
+            ["sudo", "systemctl", "status", "knockd.service"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        # If the command returns 0, the service is running
+        return result.returncode == 0 and "active (running)" in result.stdout
+    except Exception as e:
+        print(f"Error checking knockd service status: {e}")
+        return False
+
+
+def main():
+    """Main function to parse arguments and run the program."""
+    parser = argparse.ArgumentParser(description="Update knockd rotator sequences")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Do not write changes back to the file"
+    )
+    parser.add_argument(
+        "--config",
+        default=DEFAULT_CONFIG_FILE,
+        help=f"Path to knockd.conf (default: {DEFAULT_CONFIG_FILE})",
+    )
+    args = parser.parse_args()
+
+    # Process the config file and get whether changes were made
+    changes_made = process_knockd_conf(args.config, args.dry_run)
+
+    # If we're not in dry-run mode and changes were made, restart the service
+    if not args.dry_run and changes_made:
+        # Check if service is running
+        if not check_knockd_service():
+            print("Error: knockd service is not running!")
+            sys.exit(1)
+
+        # Restart the service
+        print("Restarting knockd service...")
+        try:
+            subprocess.run(
+                ["sudo", "systemctl", "restart", "knockd.service"], check=True
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Error restarting knockd service: {e}")
+            sys.exit(1)
+
+        # Wait 5 seconds
+        print("Waiting 5 seconds for service to stabilize...")
+        time.sleep(5)
+
+        # Check again that service is running
+        if not check_knockd_service():
+            print("Error: knockd service failed to restart!")
+            sys.exit(1)
+
+        print("knockd service successfully restarted.")
+
+
+if __name__ == "__main__":
+    main()

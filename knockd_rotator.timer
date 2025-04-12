@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Knockd Sequence Rotator periodically
+After=network.target
+
+[Timer]
+OnBootSec=5min
+# Default to every 6 hours (matching the default PERIOD_MODULO)
+OnUnitActiveSec=6h
+
+[Install]
+WantedBy=timers.target

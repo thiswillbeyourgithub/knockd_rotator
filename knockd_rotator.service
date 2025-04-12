@@ -1,0 +1,19 @@
+[Unit]
+Description=Knockd Sequence Rotator Service
+After=network.target knockd.service
+Wants=knockd.service
+
+[Service]
+Type=oneshot
+# Required environment variables
+Environment=KNOCKD_ROTATOR_SALT=your_secret_salt_here
+# Optional environment variables with their defaults
+Environment=KNOCKD_ROTATOR_LENGTH=6
+Environment=KNOCKD_ROTATOR_PORT_MODULO=0
+Environment=KNOCKD_ROTATOR_PERIOD_MODULO=21600
+ExecStart=/PATH/TO/knockd_rotator_server.py
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
