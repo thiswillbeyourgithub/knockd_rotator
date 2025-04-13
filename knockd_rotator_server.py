@@ -170,6 +170,7 @@ def process_knockd_conf(config_file: str, dry_run: bool = False) -> bool:
                 print(
                     f"  Sequence {sequence} is used by sections: {', '.join(sections)}"
                 )
+        sys.exit(1)
 
     # Write back the modified file if not in dry-run mode and changes are needed
     if not changes_needed:
