@@ -12,16 +12,16 @@ from typing import List, Tuple
 # Import necessary functions and constants from knockd_rotator_client.py
 from knockd_rotator_client import (
     generate_knock_sequence,
-    shared_seed,
+    __SHARED_SEED__,
     calculate_shared_seed,
     PERIOD_MODULO,
 )
 
 # Verify the imported shared_seed is current
 current_seed = calculate_shared_seed()
-if shared_seed != current_seed:
+if __SHARED_SEED__ != current_seed:
     print(
-        f"Error: Imported shared_seed ({shared_seed}) is out of sync with current time period ({current_seed})"
+        f"Error: Imported shared_seed ({__SHARED_SEED__}) is out of sync with current time period ({current_seed})"
     )
     print("This could happen if the module was imported across a time period boundary.")
     sys.exit(1)
@@ -84,7 +84,7 @@ def process_knockd_conf(config_file: str, dry_run: bool = False) -> bool:
         print(f"Error reading {config_file}: {e}")
         sys.exit(1)
 
-    print(f"Using shared seed: {shared_seed} (Based on current time period)")
+    print(f"Using shared seed: {current_seed} (Based on current time period)")
 
     # Track state
     current_section = None
