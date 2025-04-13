@@ -104,5 +104,6 @@ stop_command  = /sbin/iptables -D INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
 - This works fine using `ufw` in my tests.
 - I don't advise using a very frequent rotation unless you don't use knockd's `start_command` and `stop_command` because if it happens between the two you might end up in a compromised state.
 - The code is minimal on purpose so that you just have to copy the `knockd_rotator_client.py` file around and the env variables.
+- User @rdmitry0911 made [a pull request](https://github.com/jvinet/knock/pull/76) to include a somewhat similar feature directly in knockd. Their implementation is based on OTP whereas this project uses pure Python for the sequence generation.
 
 This project was developed with the assistance of [aider.chat](https://github.com/Aider-AI/aider/issues).
