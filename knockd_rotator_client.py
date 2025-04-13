@@ -49,17 +49,17 @@ def calculate_shared_seed(offset: int = 0) -> int:
     """
     current_timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
     # Calculate the beginning of the current period
-    period_start = (current_timestamp // PERIOD_MODULO) * (PERIOD_MODULO + offset)
+    period_start = ((current_timestamp // PERIOD_MODULO) + offset) * PERIOD_MODULO
     assert period_start
     assert len(str(period_start)) > 5, f"Suspicious period start value: {period_start}"
     return period_start
 
 
-# Calculate the shared seed based on the current period
-shared_seed = calculate_shared_seed()
+# Keep this for compatibility reasons
+__SHARED_KEY__ = calculate_shared_seed()
 
 
-def generate_knock_sequence(service_name: str) -> str:
+def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
     """
     Generate a formatted knock sequence for a specific service.
 
@@ -72,6 +72,7 @@ def generate_knock_sequence(service_name: str) -> str:
 
     Args:
         service_name: The name of the service to generate a sequence for
+        offset: Integer offset to shift the time period (default: 0)
 
     Returns:
         Formatted sequence string (e.g. "1234:tcp 5678:udp 9012:tcp")
@@ -80,8 +81,11 @@ def generate_knock_sequence(service_name: str) -> str:
     if not service_name.endswith("_ROTATOR"):
         service_name = f"{service_name}_ROTATOR"
 
+    # Calculate seed with the provided offset
+    current_seed = calculate_shared_seed(offset)
+    
     # Create the seed for this specific service
-    section_seed = f"{shared_seed}{service_name}{SALT}"
+    section_seed = f"{current_seed}{service_name}{SALT}"
 
     # Generate the ports
     ports = []
@@ -161,33 +165,40 @@ def knock_ports(host: str, sequence: str):
 
 def main():
     """Main function to parse command line arguments and either generate a sequence or perform port knocking."""
-    if len(sys.argv) < 3:  # Need at least mode and service name/host
-        print(f"Usage: {sys.argv[0]} <generate|knock> [args...]")
-        print(f"  Generate mode: {sys.argv[0]} generate <service_name>")
-        print(f"  Knock mode: {sys.argv[0]} knock <host> <service_name>")
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Port knock sequence generator and client")
+    subparsers = parser.add_subparsers(dest="mode", help="Operation mode")
+    
+    # Generate mode
+    gen_parser = subparsers.add_parser("generate", help="Generate a knock sequence")
+    gen_parser.add_argument("service_name", help="Name of the service to generate sequence for")
+    gen_parser.add_argument("--offset", type=int, default=0, 
+                           help="Time period offset (negative for past, positive for future)")
+    
+    # Knock mode
+    knock_parser = subparsers.add_parser("knock", help="Perform port knocking")
+    knock_parser.add_argument("host", help="Target host to knock on")
+    knock_parser.add_argument("service_name", help="Name of the service to generate sequence for")
+    knock_parser.add_argument("--offset", type=int, default=0, 
+                             help="Time period offset (negative for past, positive for future)")
+    
+    args = parser.parse_args()
+    
+    if not args.mode:
+        parser.print_help()
         sys.exit(1)
-
-    mode = sys.argv[1].lower()
-
-    if mode.startswith("gen"):  # Generate mode
-        if len(sys.argv) != 3:
-            print(f"Usage: {sys.argv[0]} generate <service_name>")
-            sys.exit(1)
-        service_name = sys.argv[2]
-        print(generate_knock_sequence(service_name))
-
-    elif mode.startswith("knock"):  # Knock mode
-        if len(sys.argv) < 4:
-            print(f"Usage: {sys.argv[0]} knock <host> <service_name>")
-            sys.exit(1)
-        host = sys.argv[2]
-        service_name = sys.argv[3]
-        sequence = generate_knock_sequence(service_name)
-        knock_ports(host, sequence)
-
+    
+    if args.mode.startswith("gen"):  # Generate mode
+        print(generate_knock_sequence(args.service_name, args.offset))
+    
+    elif args.mode.startswith("knock"):  # Knock mode
+        sequence = generate_knock_sequence(args.service_name, args.offset)
+        knock_ports(args.host, sequence)
+    
     else:
-        print(f"Unknown mode: {mode}")
-        print(f"Usage: {sys.argv[0]} <generate|knock> [args...]")
+        print(f"Unknown mode: {args.mode}")
+        parser.print_help()
         sys.exit(1)
 
 
