@@ -4,8 +4,8 @@ After=network.target
 
 [Timer]
 OnBootSec=5min
-# Default to every 6 hours (matching the default PERIOD_MODULO)
-OnUnitActiveSec=6h
+# Default to every 1 hours (but includes a child process that will also be run just after the next time window)
+OnUnitActiveSec=1h
 
 [Install]
 WantedBy=timers.target
