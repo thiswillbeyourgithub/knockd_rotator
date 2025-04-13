@@ -351,36 +351,36 @@ def main():
         # Process the config file and get whether changes were made
         changes_made = process_knockd_conf(args.config, args.dry_run)
 
-    # If we're not in dry-run mode and changes were made, restart the service
-    if not args.dry_run and changes_made:
-        # Check if service is running
-        if not check_knockd_service():
-            print("Error: knockd service is not running!")
-            sys.exit(1)
+        # If we're not in dry-run mode and changes were made, restart the service
+        if not args.dry_run and changes_made:
+            # Check if service is running
+            if not check_knockd_service():
+                print("Error: knockd service is not running!")
+                sys.exit(1)
 
-        # Restart the service
-        print("Restarting knockd service...")
-        try:
-            subprocess.run(
-                ["sudo", "systemctl", "restart", "knockd.service"], check=True
-            )
-        except subprocess.CalledProcessError as e:
-            print(f"Error restarting knockd service: {e}")
-            sys.exit(1)
+            # Restart the service
+            print("Restarting knockd service...")
+            try:
+                subprocess.run(
+                    ["sudo", "systemctl", "restart", "knockd.service"], check=True
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"Error restarting knockd service: {e}")
+                sys.exit(1)
 
-        # Wait 5 seconds
-        print("Waiting 5 seconds for service to stabilize...")
-        time.sleep(5)
+            # Wait 5 seconds
+            print("Waiting 5 seconds for service to stabilize...")
+            time.sleep(5)
 
-        # Check again that service is running
-        if not check_knockd_service():
-            print("Error: knockd service failed to restart!")
-            sys.exit(1)
+            # Check again that service is running
+            if not check_knockd_service():
+                print("Error: knockd service failed to restart!")
+                sys.exit(1)
 
-        print("knockd service successfully restarted.")
+            print("knockd service successfully restarted.")
 
-    # Check if we need to schedule another run before the next expected run
-    schedule_next_run_if_needed()
+        # Check if we need to schedule another run before the next expected run
+        schedule_next_run_if_needed()
     finally:
         # Always release the lock file
         release_lock(lock_file)
