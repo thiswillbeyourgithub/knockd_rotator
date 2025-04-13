@@ -167,6 +167,17 @@ def main():
     """Main function to parse command line arguments and either generate a sequence or perform port knocking."""
     import argparse
 
+    # parse 'gene' as 'generate' etc
+    argv = sys.argv
+    if "generate" not in argv and "knock" not in argv:
+        for ia, a in enumerate(sys.argv):
+            if "generate".startswith(a):
+                sys.argv[ia] = "generate"
+                break
+            elif "knock".startswith(a):
+                sys.argv[ia] = "knock"
+                break
+
     parser = argparse.ArgumentParser(
         description="Port knock sequence generator and client"
     )
@@ -203,10 +214,10 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    if "generate".startswith(args.mode.lower()):  # Generate mode
+    if args.mode == "generate":  # Generate mode
         print(generate_knock_sequence(args.service_name, args.offset))
 
-    elif "knock".startswith(args.mode.lower()):  # Knock mode
+    elif args.mode == "knock":  # Knock mode
         sequence = generate_knock_sequence(args.service_name, args.offset)
         knock_ports(args.host, sequence)
 
