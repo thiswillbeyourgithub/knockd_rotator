@@ -210,6 +210,10 @@ def schedule_next_run_if_needed():
     # If our next expected run would be more than 5 minutes after the start of a new period
     scheduled_run_time = next_period_start + 60
     sleep_duration = scheduled_run_time - current_time
+    
+    # Print current time in UTC
+    print(f"Current time is {datetime.datetime.fromtimestamp(current_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    
     print(
         f"Next period starts at {datetime.datetime.fromtimestamp(next_period_start, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
     )
