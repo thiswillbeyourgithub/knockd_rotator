@@ -13,13 +13,13 @@ __VERSION__: str = "1.0.1"
 # The sequence length determines how many ports are in the knock sequence
 SEQUENCE_LENGTH = int(os.environ.get("KNOCKD_ROTATOR_LENGTH", 10))
 
-# The salt provides additional security against sequence guessing
-SALT = os.environ.get("KNOCKD_ROTATOR_SALT")
-if not SALT:
-    sys.stderr.write("Error: KNOCKD_ROTATOR_SALT environment variable must be set\n")
+# The secret provides additional security against sequence guessing
+SECRET = os.environ.get("KNOCKD_ROTATOR_SECRET")
+if not SECRET:
+    sys.stderr.write("Error: KNOCKD_ROTATOR_SECRET environment variable must be set\n")
     sys.exit(1)
-elif len(SALT) < 10:
-    sys.stderr.write("Error: KNOCKD_ROTATOR_SALT must be at least 10 characters long\n")
+elif len(SECRET) < 10:
+    sys.stderr.write("Error: KNOCKD_ROTATOR_SECRET must be at least 10 characters long\n")
     sys.exit(1)
 
 # MODULO determines protocol selection:
@@ -85,7 +85,7 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
     current_seed = calculate_shared_seed(offset)
 
     # Create the seed for this specific service
-    section_seed = f"{current_seed}{service_name}{SALT}"
+    section_seed = f"{current_seed}{service_name}{SECRET}"
 
     # Generate the ports
     ports = []

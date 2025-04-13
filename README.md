@@ -9,9 +9,9 @@ This project provides tools to enhance the security of [knockd](https://github.c
 The rotating sequence is deterministically generated based on:
 - The timestamp at the beginning of the current time period (UNIX seconds floored to a multiple of the period length)
 - A unique service name
-- A pre-shared salt value (secret)
+- A pre-shared secret
 
-This means that legitimate clients and servers will independently generate the same sequence for each time period, while attackers cannot predict future sequences without knowing the salt.
+This means that legitimate clients and servers will independently generate the same sequence for each time period, while attackers cannot predict future sequences without knowing the secret.
 
 ## How It Works
 
@@ -59,7 +59,7 @@ A server-side tool that:
 The system is configured through environment variables:
 
 - `KNOCKD_ROTATOR_LENGTH`: Number of ports in the knock sequence (default: 10)
-- `KNOCKD_ROTATOR_SALT`: The shared secret used to generate sequences (required, minimum 10 characters)
+- `KNOCKD_ROTATOR_SECRET`: The shared secret used to generate sequences (required, minimum 10 characters)
 - `KNOCKD_ROTATOR_PORT_MODULO`: Controls TCP/UDP protocol selection:
   - When `KNOCKD_ROTATOR_PORT_MODULO = 0` (default): All knocks use TCP protocol
   - When `KNOCKD_ROTATOR_PORT_MODULO > 0`: Port modulo MODULO determines protocol (even = TCP, odd = UDP)

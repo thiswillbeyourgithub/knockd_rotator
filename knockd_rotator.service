@@ -6,7 +6,7 @@ Wants=knockd.service
 [Service]
 Type=oneshot
 # Required environment variables
-Environment=KNOCKD_ROTATOR_SALT=your_secret_salt_here
+Environment=KNOCKD_ROTATOR_SECRET=your_secret_here
 # Optional environment variables with their defaults
 Environment=KNOCKD_ROTATOR_LENGTH=10
 Environment=KNOCKD_ROTATOR_PORT_MODULO=0
