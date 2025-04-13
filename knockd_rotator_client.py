@@ -36,16 +36,22 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
     )
 
 
-def calculate_shared_seed() -> int:
+def calculate_shared_seed(offset: int = 0) -> int:
     """
-    Calculate the shared seed based on the current time period.
+    Calculate the shared seed based on the current time period with an optional offset.
+
+    Args:
+        offset: Integer offset to shift the period (negative for past periods, positive for future)
+                Default is 0 (current period)
 
     Returns:
-        int: The calculated seed value based on current UTC time
+        int: The calculated seed value based on current UTC time with the applied offset
     """
     current_timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
     # Calculate the beginning of the current period
-    period_start = (current_timestamp // PERIOD_MODULO) * PERIOD_MODULO
+    period_start = (current_timestamp // PERIOD_MODULO) * (PERIOD_MODULO + offset)
+    assert period_start
+    assert len(str(period_start)) > 5, f"Suspicious period start value: {period_start}"
     return period_start
 
 
