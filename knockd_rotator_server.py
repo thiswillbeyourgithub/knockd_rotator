@@ -150,10 +150,12 @@ def process_knockd_conf(config_file: str, dry_run: bool = False) -> bool:
     # Verify all sections have sequences
     if current_section and current_section not in old_sequences:
         print(f"Warning: No sequence found for section {current_section}")
+        sys.exit(1)
 
     # Verify sequences are unique
     if not new_sequences:
         print("Warning: No rotator sequence sections found in the config file")
+        sys.exit(1)
 
     unique_sequences = set(new_sequences.values())
     if len(unique_sequences) < len(new_sequences):
