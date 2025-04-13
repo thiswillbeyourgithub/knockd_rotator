@@ -8,7 +8,14 @@ import time
 from typing import List, Tuple
 
 # Import necessary functions and constants from knockd_rotator_client.py
-from knockd_rotator_client import generate_knock_sequence, shared_seed
+from knockd_rotator_client import generate_knock_sequence, shared_seed, calculate_shared_seed
+
+# Verify the imported shared_seed is current
+current_seed = calculate_shared_seed()
+if shared_seed != current_seed:
+    print(f"Error: Imported shared_seed ({shared_seed}) is out of sync with current time period ({current_seed})")
+    print("This could happen if the module was imported across a time period boundary.")
+    sys.exit(1)
 
 __VERSION__: str = "1.0.1"
 

@@ -18,6 +18,9 @@ SALT = os.environ.get("KNOCKD_ROTATOR_SALT")
 if not SALT:
     sys.stderr.write("Error: KNOCKD_ROTATOR_SALT environment variable must be set\n")
     sys.exit(1)
+elif len(SALT) < 10:
+    sys.stderr.write("Error: KNOCKD_ROTATOR_SALT must be at least 10 characters long\n")
+    sys.exit(1)
 
 # MODULO determines protocol selection:
 # - If MODULO is 0, always use TCP
@@ -32,11 +35,20 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
         "Warning: KNOCKD_ROTATOR_PERIOD_MODULO not set, using default of 21600 (6 hours)\n"
     )
 
+def calculate_shared_seed() -> int:
+    """
+    Calculate the shared seed based on the current time period.
+    
+    Returns:
+        int: The calculated seed value based on current UTC time
+    """
+    current_timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+    # Calculate the beginning of the current period
+    period_start = (current_timestamp // PERIOD_MODULO) * PERIOD_MODULO
+    return period_start
+
 # Calculate the shared seed based on the current period
-current_timestamp = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-# Calculate the beginning of the current period
-period_start = (current_timestamp // PERIOD_MODULO) * PERIOD_MODULO
-shared_seed = period_start
+shared_seed = calculate_shared_seed()
 
 
 def generate_knock_sequence(service_name: str) -> str:
