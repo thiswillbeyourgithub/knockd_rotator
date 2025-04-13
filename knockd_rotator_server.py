@@ -210,15 +210,19 @@ def schedule_next_run_if_needed():
     # If our next expected run would be more than 5 minutes after the start of a new period
     scheduled_run_time = next_period_start + 60
     sleep_duration = scheduled_run_time - current_time
-    
+
     # Print current time in UTC
-    print(f"Current time is {datetime.datetime.fromtimestamp(current_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    
+    print(
+        f"Current time is {datetime.datetime.fromtimestamp(current_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    )
+
     print(
         f"Next period starts at {datetime.datetime.fromtimestamp(next_period_start, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
     )
     time_until_next_period = next_period_start - current_time
-    print(f"Time until next period: {int(time_until_next_period)} seconds ({time_until_next_period/3600:.2f} hours)")
+    print(
+        f"Time until next period: {int(time_until_next_period)} seconds ({time_until_next_period/3600:.2f} hours)"
+    )
     if next_expected_run > next_period_start + buffer_time:
         # Schedule a run for 1 minute after the next period starts
         print(
@@ -230,25 +234,25 @@ def schedule_next_run_if_needed():
         try:
             cmd = sys.argv.copy()
             systemd_cmd = [
-                "systemd-run", 
-                "--on-active", f"{int(sleep_duration)}s",
-                "--unit", f"knockd-rotator-period-change-{int(next_period_start)}",
-                "--description", f"Scheduled knockd-rotator run for period change at {int(next_period_start)}"
+                "systemd-run",
+                "--on-active",
+                f"{int(sleep_duration)}s",
+                "--unit",
+                f"knockd-rotator-period-change-{int(next_period_start)}",
+                "--description",
+                f"Scheduled knockd-rotator run for period change at {int(next_period_start)}",
             ]
             systemd_cmd.extend(cmd)
-            
+
             result = subprocess.run(
-                systemd_cmd,
-                capture_output=True, 
-                text=True, 
-                check=True
+                systemd_cmd, capture_output=True, text=True, check=True
             )
             print(f"Scheduled via systemd: {result.stdout.strip()}")
         except subprocess.CalledProcessError as e:
             print(f"Failed to schedule via systemd: {e}")
             print(f"stdout: {e.stdout}")
             print(f"stderr: {e.stderr}")
-            
+
             # Fall back to a background process but redirect to a log file
             print("Falling back to manual scheduling...")
             log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
@@ -257,7 +261,9 @@ def schedule_next_run_if_needed():
                 ["sh", "-c", cmd_str],
                 start_new_session=True,
             )
-            print(f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}")
+            print(
+                f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}"
+            )
 
 
 def check_knockd_service() -> bool:
