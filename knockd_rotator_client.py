@@ -56,7 +56,7 @@ def calculate_shared_seed(offset: int = 0) -> int:
 
 
 # Keep this for compatibility reasons
-__SHARED_KEY__ = calculate_shared_seed()
+__SHARED_SEED__ = calculate_shared_seed()
 
 
 def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
