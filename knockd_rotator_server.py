@@ -205,14 +205,15 @@ def schedule_next_run_if_needed():
     buffer_time = 300
 
     # If our next expected run would be more than 5 minutes after the start of a new period
+    scheduled_run_time = next_period_start + 60
+    sleep_duration = scheduled_run_time - current_time
+    print(
+        f"Next period starts at {datetime.datetime.fromtimestamp(next_period_start, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    )
+    time_until_next_period = next_period_start - current_time
+    print(f"Time until next period: {int(time_until_next_period)} seconds ({time_until_next_period/3600:.2f} hours)")
     if next_expected_run > next_period_start + buffer_time:
         # Schedule a run for 1 minute after the next period starts
-        scheduled_run_time = next_period_start + 60
-        sleep_duration = scheduled_run_time - current_time
-
-        print(
-            f"Next period starts at {datetime.datetime.fromtimestamp(next_period_start, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
-        )
         print(
             f"Scheduling additional run at {datetime.datetime.fromtimestamp(scheduled_run_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
