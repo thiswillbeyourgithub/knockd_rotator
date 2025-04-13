@@ -189,10 +189,10 @@ def main():
         parser.print_help()
         sys.exit(1)
     
-    if args.mode.startswith("gen"):  # Generate mode
+    if "generate".startswith(args.mode.lower()):  # Generate mode
         print(generate_knock_sequence(args.service_name, args.offset))
     
-    elif args.mode.startswith("knock"):  # Knock mode
+    elif "knock".startswith(args.mode.lower()):  # Knock mode
         sequence = generate_knock_sequence(args.service_name, args.offset)
         knock_ports(args.host, sequence)
     
