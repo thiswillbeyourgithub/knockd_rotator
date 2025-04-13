@@ -269,6 +269,47 @@ def schedule_next_run_if_needed():
             )
 
 
+def acquire_lock(config_file: str) -> str:
+    """
+    Create a lock file next to the config file.
+    
+    Args:
+        config_file: Path to the knockd.conf file
+        
+    Returns:
+        Path to the created lock file
+        
+    Raises:
+        SystemExit: If the lock file already exists
+    """
+    lock_file = f"{config_file}.lock"
+    
+    if os.path.exists(lock_file):
+        print(f"Error: Lock file {lock_file} already exists. Another instance might be running.")
+        sys.exit(1)
+    
+    # Create lock file
+    try:
+        with open(lock_file, 'w') as f:
+            f.write(f"{os.getpid()}\n")
+        return lock_file
+    except Exception as e:
+        print(f"Error creating lock file {lock_file}: {e}")
+        sys.exit(1)
+
+def release_lock(lock_file: str) -> None:
+    """
+    Remove the lock file.
+    
+    Args:
+        lock_file: Path to the lock file
+    """
+    try:
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+    except Exception as e:
+        print(f"Warning: Failed to remove lock file {lock_file}: {e}")
+
 def check_knockd_service() -> bool:
     """
     Check if knockd service is running.
@@ -303,8 +344,12 @@ def main():
     )
     args = parser.parse_args()
 
-    # Process the config file and get whether changes were made
-    changes_made = process_knockd_conf(args.config, args.dry_run)
+    # Acquire lock file
+    lock_file = acquire_lock(args.config)
+    
+    try:
+        # Process the config file and get whether changes were made
+        changes_made = process_knockd_conf(args.config, args.dry_run)
 
     # If we're not in dry-run mode and changes were made, restart the service
     if not args.dry_run and changes_made:
@@ -336,6 +381,9 @@ def main():
 
     # Check if we need to schedule another run before the next expected run
     schedule_next_run_if_needed()
+    finally:
+        # Always release the lock file
+        release_lock(lock_file)
 
 
 if __name__ == "__main__":
