@@ -256,6 +256,11 @@ def schedule_next_run_if_needed():
             print(f"stdout: {e.stdout}")
             print(f"stderr: {e.stderr}")
 
+            # Skip manual scheduling if the timer unit already exists
+            if "already exists" in str(e.stderr):
+                print("Timer unit already exists. Skipping manual scheduling.")
+                return
+
             # Fall back to a background process but redirect to a log file
             print("Falling back to manual scheduling...")
             log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
