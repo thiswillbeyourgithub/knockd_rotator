@@ -5,19 +5,33 @@ import re
 import argparse
 import subprocess
 import time
+import os
+import datetime
 from typing import List, Tuple
 
 # Import necessary functions and constants from knockd_rotator_client.py
-from knockd_rotator_client import generate_knock_sequence, shared_seed, calculate_shared_seed
+from knockd_rotator_client import (
+    generate_knock_sequence,
+    shared_seed,
+    calculate_shared_seed,
+    PERIOD_MODULO,
+)
 
 # Verify the imported shared_seed is current
 current_seed = calculate_shared_seed()
 if shared_seed != current_seed:
-    print(f"Error: Imported shared_seed ({shared_seed}) is out of sync with current time period ({current_seed})")
+    print(
+        f"Error: Imported shared_seed ({shared_seed}) is out of sync with current time period ({current_seed})"
+    )
     print("This could happen if the module was imported across a time period boundary.")
     sys.exit(1)
 
 __VERSION__: str = "1.0.1"
+
+# How frequently this server is expected to run (in seconds)
+SERVER_RUN_INTERVAL = int(
+    os.environ.get("KNOCKD_ROTATOR_SERVER_INTERVAL", 3600)
+)  # Default: 1 hour
 
 DEFAULT_CONFIG_FILE = "/etc/knockd.conf"
 
@@ -174,6 +188,48 @@ def process_knockd_conf(config_file: str, dry_run: bool = False) -> bool:
     return changes_needed
 
 
+def schedule_next_run_if_needed():
+    """
+    Check if we need to schedule an additional run before the next expected run.
+    This ensures we update the sequence within 5 minutes of a new period starting.
+    """
+    # Get current time and when we expect to run next
+    current_time = datetime.datetime.now(datetime.timezone.utc).timestamp()
+    next_expected_run = current_time + SERVER_RUN_INTERVAL
+
+    # Calculate when the next period starts
+    current_period_start = (current_time // PERIOD_MODULO) * PERIOD_MODULO
+    next_period_start = current_period_start + PERIOD_MODULO
+
+    # 5 minutes buffer (300 seconds)
+    buffer_time = 300
+
+    # If our next expected run would be more than 5 minutes after the start of a new period
+    if next_expected_run > next_period_start + buffer_time:
+        # Schedule a run for 1 minute after the next period starts
+        scheduled_run_time = next_period_start + 60
+        sleep_duration = scheduled_run_time - current_time
+
+        print(
+            f"Next period starts at {datetime.datetime.fromtimestamp(next_period_start, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
+        print(
+            f"Scheduling additional run at {datetime.datetime.fromtimestamp(scheduled_run_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
+        print(f"(in {sleep_duration:.1f} seconds)")
+
+        # Start a new background process that will run after sleeping
+        cmd = sys.argv.copy()
+        # Construct the sleep command followed by the original command
+        daemon_process = subprocess.Popen(
+            ["sh", "-c", f"sleep {sleep_duration} && {' '.join(cmd)}"],
+            start_new_session=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        print(f"Daemon process started with PID {daemon_process.pid}")
+
+
 def check_knockd_service() -> bool:
     """
     Check if knockd service is running.
@@ -238,6 +294,9 @@ def main():
             sys.exit(1)
 
         print("knockd service successfully restarted.")
+
+    # Check if we need to schedule another run before the next expected run
+    schedule_next_run_if_needed()
 
 
 if __name__ == "__main__":

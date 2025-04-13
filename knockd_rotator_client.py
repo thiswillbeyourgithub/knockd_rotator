@@ -35,10 +35,11 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
         "Warning: KNOCKD_ROTATOR_PERIOD_MODULO not set, using default of 21600 (6 hours)\n"
     )
 
+
 def calculate_shared_seed() -> int:
     """
     Calculate the shared seed based on the current time period.
-    
+
     Returns:
         int: The calculated seed value based on current UTC time
     """
@@ -46,6 +47,7 @@ def calculate_shared_seed() -> int:
     # Calculate the beginning of the current period
     period_start = (current_timestamp // PERIOD_MODULO) * PERIOD_MODULO
     return period_start
+
 
 # Calculate the shared seed based on the current period
 shared_seed = calculate_shared_seed()
