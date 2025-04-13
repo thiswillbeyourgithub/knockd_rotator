@@ -231,7 +231,9 @@ def schedule_next_run_if_needed():
         print(
             f"Scheduling additional run at {datetime.datetime.fromtimestamp(scheduled_run_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
-        print(f"(in {sleep_duration:.1f} seconds, random delay of {random_delay} seconds)")
+        print(
+            f"(in {sleep_duration:.1f} seconds, random delay of {random_delay} seconds)"
+        )
 
         # Use systemd-run to schedule the next run with proper logging
         try:
@@ -265,7 +267,7 @@ def schedule_next_run_if_needed():
             print("Falling back to manual scheduling...")
             log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
             cmd_str = f"sleep {sleep_duration} && {' '.join(cmd)} > {log_file} 2>&1"
-            
+
             # Use double-fork technique to ensure the process continues running
             # even if the parent or intermediate process exits
             try:
@@ -285,14 +287,16 @@ def schedule_next_run_if_needed():
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
-                print(f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}")
+                print(
+                    f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}"
+                )
                 return
-                
+
             # Child process: decouple from parent environment
             os.setsid()
-            os.chdir('/')  # Change to root directory
-            os.umask(0)    # Reset file mode creation mask
-            
+            os.chdir("/")  # Change to root directory
+            os.umask(0)  # Reset file mode creation mask
+
             try:
                 # Second fork
                 pid = os.fork()
@@ -302,17 +306,17 @@ def schedule_next_run_if_needed():
             except OSError as e:
                 print(f"Fork #2 failed: {e}")
                 sys.exit(1)
-                
+
             # Redirect standard file descriptors
             sys.stdout.flush()
             sys.stderr.flush()
-            with open('/dev/null', 'r') as null_in, \
-                 open(log_file, 'a') as log_out, \
-                 open(log_file, 'a') as log_err:
+            with open("/dev/null", "r") as null_in, open(
+                log_file, "a"
+            ) as log_out, open(log_file, "a") as log_err:
                 os.dup2(null_in.fileno(), sys.stdin.fileno())
                 os.dup2(log_out.fileno(), sys.stdout.fileno())
                 os.dup2(log_err.fileno(), sys.stderr.fileno())
-                
+
             # Execute the command
             os.system(cmd_str)
             sys.exit(0)
@@ -321,35 +325,38 @@ def schedule_next_run_if_needed():
 def acquire_lock(config_file: str) -> str:
     """
     Create a lock file next to the config file.
-    
+
     Args:
         config_file: Path to the knockd.conf file
-        
+
     Returns:
         Path to the created lock file
-        
+
     Raises:
         SystemExit: If the lock file already exists
     """
     lock_file = f"{config_file}.lock"
-    
+
     if os.path.exists(lock_file):
-        print(f"Error: Lock file {lock_file} already exists. Another instance might be running.")
+        print(
+            f"Error: Lock file {lock_file} already exists. Another instance might be running."
+        )
         sys.exit(1)
-    
+
     # Create lock file
     try:
-        with open(lock_file, 'w') as f:
+        with open(lock_file, "w") as f:
             f.write(f"{os.getpid()}\n")
         return lock_file
     except Exception as e:
         print(f"Error creating lock file {lock_file}: {e}")
         sys.exit(1)
 
+
 def release_lock(lock_file: str) -> None:
     """
     Remove the lock file.
-    
+
     Args:
         lock_file: Path to the lock file
     """
@@ -358,6 +365,7 @@ def release_lock(lock_file: str) -> None:
             os.remove(lock_file)
     except Exception as e:
         print(f"Warning: Failed to remove lock file {lock_file}: {e}")
+
 
 def check_knockd_service() -> bool:
     """
@@ -395,7 +403,7 @@ def main():
 
     # Acquire lock file
     lock_file = acquire_lock(args.config)
-    
+
     try:
         # Process the config file and get whether changes were made
         changes_made = process_knockd_conf(args.config, args.dry_run)

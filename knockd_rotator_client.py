@@ -19,7 +19,9 @@ if not SECRET:
     sys.stderr.write("Error: KNOCKD_ROTATOR_SECRET environment variable must be set\n")
     sys.exit(1)
 elif len(SECRET) < 10:
-    sys.stderr.write("Error: KNOCKD_ROTATOR_SECRET must be at least 10 characters long\n")
+    sys.stderr.write(
+        "Error: KNOCKD_ROTATOR_SECRET must be at least 10 characters long\n"
+    )
     sys.exit(1)
 
 # MODULO determines protocol selection:
