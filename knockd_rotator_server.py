@@ -218,16 +218,38 @@ def schedule_next_run_if_needed():
         )
         print(f"(in {sleep_duration:.1f} seconds)")
 
-        # Start a new background process that will run after sleeping
-        cmd = sys.argv.copy()
-        # Construct the sleep command followed by the original command
-        daemon_process = subprocess.Popen(
-            ["sh", "-c", f"sleep {sleep_duration} && {' '.join(cmd)}"],
-            start_new_session=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        print(f"Daemon process started with PID {daemon_process.pid}")
+        # Use systemd-run to schedule the next run with proper logging
+        try:
+            cmd = sys.argv.copy()
+            systemd_cmd = [
+                "systemd-run", 
+                "--on-active", f"{int(sleep_duration)}s",
+                "--unit", f"knockd-rotator-period-change-{int(next_period_start)}",
+                "--description", f"Scheduled knockd-rotator run for period change at {int(next_period_start)}"
+            ]
+            systemd_cmd.extend(cmd)
+            
+            result = subprocess.run(
+                systemd_cmd,
+                capture_output=True, 
+                text=True, 
+                check=True
+            )
+            print(f"Scheduled via systemd: {result.stdout.strip()}")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to schedule via systemd: {e}")
+            print(f"stdout: {e.stdout}")
+            print(f"stderr: {e.stderr}")
+            
+            # Fall back to a background process but redirect to a log file
+            print("Falling back to manual scheduling...")
+            log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
+            cmd_str = f"sleep {sleep_duration} && {' '.join(cmd)} > {log_file} 2>&1"
+            daemon_process = subprocess.Popen(
+                ["sh", "-c", cmd_str],
+                start_new_session=True,
+            )
+            print(f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}")
 
 
 def check_knockd_service() -> bool:
