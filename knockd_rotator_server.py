@@ -7,6 +7,7 @@ import subprocess
 import time
 import os
 import datetime
+import random
 from typing import List, Tuple
 
 # Import necessary functions and constants from knockd_rotator_client.py
@@ -208,7 +209,9 @@ def schedule_next_run_if_needed():
     buffer_time = 300
 
     # If our next expected run would be more than 5 minutes after the start of a new period
-    scheduled_run_time = next_period_start + 60
+    # Add a random delay (10-250 seconds) to fuzzify the scheduling
+    random_delay = random.randint(10, 250)
+    scheduled_run_time = next_period_start + random_delay
     sleep_duration = scheduled_run_time - current_time
 
     # Print current time in UTC
@@ -228,7 +231,7 @@ def schedule_next_run_if_needed():
         print(
             f"Scheduling additional run at {datetime.datetime.fromtimestamp(scheduled_run_time, datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
-        print(f"(in {sleep_duration:.1f} seconds)")
+        print(f"(in {sleep_duration:.1f} seconds, random delay of {random_delay} seconds)")
 
         # Use systemd-run to schedule the next run with proper logging
         try:
