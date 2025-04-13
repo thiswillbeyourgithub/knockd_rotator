@@ -83,7 +83,7 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
 
     # Calculate seed with the provided offset
     current_seed = calculate_shared_seed(offset)
-    
+
     # Create the seed for this specific service
     section_seed = f"{current_seed}{service_name}{SALT}"
 
@@ -166,36 +166,50 @@ def knock_ports(host: str, sequence: str):
 def main():
     """Main function to parse command line arguments and either generate a sequence or perform port knocking."""
     import argparse
-    
-    parser = argparse.ArgumentParser(description="Port knock sequence generator and client")
+
+    parser = argparse.ArgumentParser(
+        description="Port knock sequence generator and client"
+    )
     subparsers = parser.add_subparsers(dest="mode", help="Operation mode")
-    
+
     # Generate mode
     gen_parser = subparsers.add_parser("generate", help="Generate a knock sequence")
-    gen_parser.add_argument("service_name", help="Name of the service to generate sequence for")
-    gen_parser.add_argument("--offset", type=int, default=0, 
-                           help="Time period offset (negative for past, positive for future)")
-    
+    gen_parser.add_argument(
+        "service_name", help="Name of the service to generate sequence for"
+    )
+    gen_parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Time period offset (negative for past, positive for future)",
+    )
+
     # Knock mode
     knock_parser = subparsers.add_parser("knock", help="Perform port knocking")
     knock_parser.add_argument("host", help="Target host to knock on")
-    knock_parser.add_argument("service_name", help="Name of the service to generate sequence for")
-    knock_parser.add_argument("--offset", type=int, default=0, 
-                             help="Time period offset (negative for past, positive for future)")
-    
+    knock_parser.add_argument(
+        "service_name", help="Name of the service to generate sequence for"
+    )
+    knock_parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Time period offset (negative for past, positive for future)",
+    )
+
     args = parser.parse_args()
-    
+
     if not args.mode:
         parser.print_help()
         sys.exit(1)
-    
+
     if "generate".startswith(args.mode.lower()):  # Generate mode
         print(generate_knock_sequence(args.service_name, args.offset))
-    
+
     elif "knock".startswith(args.mode.lower()):  # Knock mode
         sequence = generate_knock_sequence(args.service_name, args.offset)
         knock_ports(args.host, sequence)
-    
+
     else:
         print(f"Unknown mode: {args.mode}")
         parser.print_help()
