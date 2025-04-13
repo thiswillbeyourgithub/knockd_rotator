@@ -265,13 +265,57 @@ def schedule_next_run_if_needed():
             print("Falling back to manual scheduling...")
             log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
             cmd_str = f"sleep {sleep_duration} && {' '.join(cmd)} > {log_file} 2>&1"
-            daemon_process = subprocess.Popen(
-                ["sh", "-c", cmd_str],
-                start_new_session=True,
-            )
-            print(
-                f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}"
-            )
+            
+            # Use double-fork technique to ensure the process continues running
+            # even if the parent or intermediate process exits
+            try:
+                # First fork
+                pid = os.fork()
+                if pid > 0:
+                    # Parent process: exit
+                    print(f"Started first fork with PID {pid}")
+                    return
+            except OSError as e:
+                print(f"Fork #1 failed: {e}")
+                # Fall back to simpler approach
+                daemon_process = subprocess.Popen(
+                    ["sh", "-c", cmd_str],
+                    start_new_session=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                print(f"Daemon process started with PID {daemon_process.pid}, logging to {log_file}")
+                return
+                
+            # Child process: decouple from parent environment
+            os.setsid()
+            os.chdir('/')  # Change to root directory
+            os.umask(0)    # Reset file mode creation mask
+            
+            try:
+                # Second fork
+                pid = os.fork()
+                if pid > 0:
+                    # Intermediate process: exit
+                    sys.exit(0)
+            except OSError as e:
+                print(f"Fork #2 failed: {e}")
+                sys.exit(1)
+                
+            # Redirect standard file descriptors
+            sys.stdout.flush()
+            sys.stderr.flush()
+            with open('/dev/null', 'r') as null_in, \
+                 open(log_file, 'a') as log_out, \
+                 open(log_file, 'a') as log_err:
+                os.dup2(null_in.fileno(), sys.stdin.fileno())
+                os.dup2(log_out.fileno(), sys.stdout.fileno())
+                os.dup2(log_err.fileno(), sys.stderr.fileno())
+                
+            # Execute the command
+            os.system(cmd_str)
+            sys.exit(0)
 
 
 def acquire_lock(config_file: str) -> str:
