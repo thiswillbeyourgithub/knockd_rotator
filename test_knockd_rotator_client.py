@@ -102,12 +102,12 @@ def test_low_entropy():
     # Save original values
     original_sequence_length = knockd_rotator_client.SEQUENCE_LENGTH
     original_ports = knockd_rotator_client.PORTS
-    
+
     try:
         # Directly patch the module variables with low entropy values
         knockd_rotator_client.SEQUENCE_LENGTH = 5
         knockd_rotator_client.PORTS = list(range(2000, 2011))  # 11 ports (2000-2010)
-        
+
         # This should raise ValueError due to low entropy
         with pytest.raises(ValueError) as excinfo:
             knockd_rotator_client.generate_knock_sequence("test_service")
@@ -164,37 +164,37 @@ def test_different_sequences_with_different_secrets():
     # First test: Run client with first secret
     env1 = os.environ.copy()
     env1["KNOCKD_ROTATOR_SECRET"] = "verysecretkey1234"
-    
+
     result1 = subprocess.run(
         [sys.executable, "knockd_rotator_client.py", "generate", "test_service"],
         capture_output=True,
         text=True,
-        env=env1
+        env=env1,
     )
-    
+
     # Second test: Run client with different secret
     env2 = os.environ.copy()
     env2["KNOCKD_ROTATOR_SECRET"] = "anothersecretkey5678"
-    
+
     result2 = subprocess.run(
         [sys.executable, "knockd_rotator_client.py", "generate", "test_service"],
         capture_output=True,
         text=True,
-        env=env2
+        env=env2,
     )
-    
+
     # Ensure both commands succeeded
     assert result1.returncode == 0, "Client with first secret should run successfully"
     assert result2.returncode == 0, "Client with second secret should run successfully"
-    
+
     # Get the generated sequences
     seq1 = result1.stdout.strip()
     seq2 = result2.stdout.strip()
-    
+
     # Both should have generated valid sequences
     assert len(seq1) > 0, "First client should have generated a sequence"
     assert len(seq2) > 0, "Second client should have generated a sequence"
-    
+
     # Sequences should be different with different secrets
     assert seq1 != seq2, "Sequences should be different when using different secrets"
 
