@@ -112,5 +112,6 @@ stop_command  = /sbin/iptables -D INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
 - User @rdmitry0911 made [a pull request](https://github.com/jvinet/knock/pull/76) to include a somewhat similar feature directly in knockd. Their implementation is based on OTP whereas this project uses pure Python for the sequence generation.
 - Knockd already includes a feature to have knock sequences taken from a text file and used only once at a time. However, I wanted to be able to perform knocks from multiple clients without issues, so I created this solution which deterministically generates the same sequence across all clients for a given time period.
 - Why not use HMACs or other counter-based approaches? This time-based key setup allows clients and servers to operate without having to sync counters between them. All clients are equal, and the setup is as simple as possible while still providing robust security.
+- You can run the test suite to verify everything is working correctly: `python -m pytest test_knockd_rotator_client.py -v`
 
 This project was developed with the assistance of [aider.chat](https://github.com/Aider-AI/aider/issues).
