@@ -159,6 +159,46 @@ def test_port_variety():
     assert len(set(ports)) > 1, "Generated sequence should contain different ports"
 
 
+def test_different_sequences_with_different_secrets():
+    """Test if sequences differ when the secret is changed using different environment settings."""
+    # First test: Run client with first secret
+    env1 = os.environ.copy()
+    env1["KNOCKD_ROTATOR_SECRET"] = "verysecretkey1234"
+    
+    result1 = subprocess.run(
+        [sys.executable, "knockd_rotator_client.py", "generate", "test_service"],
+        capture_output=True,
+        text=True,
+        env=env1
+    )
+    
+    # Second test: Run client with different secret
+    env2 = os.environ.copy()
+    env2["KNOCKD_ROTATOR_SECRET"] = "anothersecretkey5678"
+    
+    result2 = subprocess.run(
+        [sys.executable, "knockd_rotator_client.py", "generate", "test_service"],
+        capture_output=True,
+        text=True,
+        env=env2
+    )
+    
+    # Ensure both commands succeeded
+    assert result1.returncode == 0, "Client with first secret should run successfully"
+    assert result2.returncode == 0, "Client with second secret should run successfully"
+    
+    # Get the generated sequences
+    seq1 = result1.stdout.strip()
+    seq2 = result2.stdout.strip()
+    
+    # Both should have generated valid sequences
+    assert len(seq1) > 0, "First client should have generated a sequence"
+    assert len(seq2) > 0, "Second client should have generated a sequence"
+    
+    # Sequences should be different with different secrets
+    assert seq1 != seq2, "Sequences should be different when using different secrets"
+
+
 def test_subprocess_call():
     """Test if calling from subprocess via python works."""
     # Run client with generate command
