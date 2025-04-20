@@ -248,16 +248,20 @@ def schedule_next_run_if_needed():
                 f"Scheduled knockd-rotator run for period change at {int(next_period_start)}",
                 "--same-dir",  # Keep the same working directory
             ]
-            
+
             # Preserve environment variables
-            important_vars = ["KNOCKD_ROTATOR_SECRET", "KNOCKD_ROTATOR_LENGTH", 
-                             "KNOCKD_ROTATOR_PORT_MODULO", "KNOCKD_ROTATOR_PERIOD_MODULO",
-                             "KNOCKD_ROTATOR_SERVER_INTERVAL"]
-            
+            important_vars = [
+                "KNOCKD_ROTATOR_SECRET",
+                "KNOCKD_ROTATOR_LENGTH",
+                "KNOCKD_ROTATOR_PORT_MODULO",
+                "KNOCKD_ROTATOR_PERIOD_MODULO",
+                "KNOCKD_ROTATOR_SERVER_INTERVAL",
+            ]
+
             for var in important_vars:
                 if var in os.environ:
                     systemd_cmd.extend(["--setenv", f"{var}={os.environ[var]}"])
-            
+
             systemd_cmd.extend(cmd)
 
             result = subprocess.run(
@@ -277,18 +281,24 @@ def schedule_next_run_if_needed():
             # Fall back to a background process but redirect to a log file
             print("Falling back to manual scheduling...")
             log_file = f"/var/log/knockd_rotator_scheduled_{int(next_period_start)}.log"
-            
+
             # Prepare environment variables for the command
             env_vars = ""
-            important_vars = ["KNOCKD_ROTATOR_SECRET", "KNOCKD_ROTATOR_LENGTH", 
-                             "KNOCKD_ROTATOR_PORT_MODULO", "KNOCKD_ROTATOR_PERIOD_MODULO",
-                             "KNOCKD_ROTATOR_SERVER_INTERVAL"]
-            
+            important_vars = [
+                "KNOCKD_ROTATOR_SECRET",
+                "KNOCKD_ROTATOR_LENGTH",
+                "KNOCKD_ROTATOR_PORT_MODULO",
+                "KNOCKD_ROTATOR_PERIOD_MODULO",
+                "KNOCKD_ROTATOR_SERVER_INTERVAL",
+            ]
+
             for var in important_vars:
                 if var in os.environ:
                     env_vars += f"{var}='{os.environ[var]}' "
-            
-            cmd_str = f"sleep {sleep_duration} && {env_vars}{' '.join(cmd)} > {log_file} 2>&1"
+
+            cmd_str = (
+                f"sleep {sleep_duration} && {env_vars}{' '.join(cmd)} > {log_file} 2>&1"
+            )
 
             # Use double-fork technique to ensure the process continues running
             # even if the parent or intermediate process exits
