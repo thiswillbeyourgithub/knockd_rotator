@@ -37,6 +37,11 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
         "Warning: KNOCKD_ROTATOR_PERIOD_MODULO not set, using default of 21600 (6 hours)\n"
     )
 
+# Port range for sequence generation
+# Default: 2000-65535 to avoid requiring elevated privileges
+MIN_PORT = int(os.environ.get("KNOCKD_ROTATOR_MIN_PORT", 2000))
+MAX_PORT = int(os.environ.get("KNOCKD_ROTATOR_MAX_PORT", 65536))
+
 
 def calculate_shared_seed(offset: int = 0) -> int:
     """
@@ -99,11 +104,9 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
         # Take first 8 hex chars and convert to decimal
         decimal = int(hash_value[:8], 16)
 
-        # Scale to range 2000-65535
-        min_port = 2000
-        max_port = 65536
-        port = (decimal % (max_port - min_port)) + min_port
-        assert port >= min_port and port <= max_port
+        # Scale to range MIN_PORT-MAX_PORT (defaults to 2000-65535)
+        port = (decimal % (MAX_PORT - MIN_PORT)) + MIN_PORT
+        assert port >= MIN_PORT and port <= MAX_PORT
         ports.append(port)
 
     # Format the sequence with protocol determination
