@@ -68,8 +68,7 @@ The system is configured through environment variables:
 - `KNOCKD_ROTATOR_PORTS`: List of ports or port ranges to use for knock sequences (default: "2000-65536")
   - Format: Comma-separated list of either single ports or ranges (e.g., "2000-3000,4000,5000-6000")
   - Both ends of ranges are included
-  - At least 2 ports must be specified
-  - Duplicate ports are automatically removed
+  - At least 2 ports must be specified, with no duplicates.
 
 Port numbers are generated in the range 2000-65536 by default to avoid requiring elevated privileges. You can adjust this with the `KNOCKD_ROTATOR_PORTS` environment variable if needed (for example, if certain port ranges are blocked by firewalls or require special permissions). Using 3 or fewer ports will significantly reduce security and generate a warning.
 
