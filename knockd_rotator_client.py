@@ -100,7 +100,10 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
         decimal = int(hash_value[:8], 16)
 
         # Scale to range 2000-65535
-        port = (decimal % 63536) + 2000
+        min_port = 2000
+        max_port = 65536
+        port = (decimal % (max_port - min_port)) + min_port
+        assert port >= min_port and port <= max_port
         ports.append(port)
 
     # Format the sequence with protocol determination
