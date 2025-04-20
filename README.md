@@ -62,7 +62,7 @@ The system is configured through environment variables:
 - `KNOCKD_ROTATOR_SECRET`: The shared secret used to generate sequences (required, minimum 10 characters)
 - `KNOCKD_ROTATOR_PROTO_MODULO`: Controls TCP/UDP protocol selection:
   - When `KNOCKD_ROTATOR_PROTO_MODULO = 0` (default): All knocks use TCP protocol
-  - When `KNOCKD_ROTATOR_PROTO_MODULO > 0`: Port modulo MODULO determines protocol (even = TCP, odd = UDP)
+  - When `KNOCKD_ROTATOR_PROTO_MODULO > 0`: For each port of the sequence, the port modulo `KNOCKD_ROTATOR_PROTO_MODULO` determines protocol (even = TCP, odd = UDP)
 - `KNOCKD_ROTATOR_PERIOD_MODULO`: Controls how frequently the sequence changes, in seconds (default: 21600, which is 6 hours)
 - `KNOCKD_ROTATOR_SERVER_INTERVAL`: How often the server script is expected to run, in seconds (default: 3600, which is 1 hour). This is used to know if we should fork the process to anticipate the next period.
 - `KNOCKD_ROTATOR_PORTS`: List of ports or port ranges to use for knock sequences (default: "2000-65536")
