@@ -52,8 +52,8 @@ for part in port_str.split(","):
 
 # Ensure no duplicates
 if len(PORTS) != len(set(PORTS)):
-    sys.stderr.write("Warning: Duplicate ports in KNOCKD_ROTATOR_PORTS will be ignored\n")
-    PORTS = list(set(PORTS))
+    sys.stderr.write("Error: Duplicate ports in KNOCKD_ROTATOR_PORTS are not allowed\n")
+    sys.exit(1)
 
 # Ensure at least 2 ports
 assert len(PORTS) >= 2, "KNOCKD_ROTATOR_PORTS must contain at least 2 ports"
