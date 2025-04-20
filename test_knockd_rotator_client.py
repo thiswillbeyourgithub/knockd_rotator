@@ -99,10 +99,15 @@ import knockd_rotator_client
 
 def test_low_entropy():
     """Test if the client raises an error when entropy is too low."""
-    # Create a temporary environment with low entropy
-    with patch.dict(
-        os.environ, {"KNOCKD_ROTATOR_PORTS": "2000-2010", "KNOCKD_ROTATOR_LENGTH": "5"}
-    ):
+    # Save original values
+    original_sequence_length = knockd_rotator_client.SEQUENCE_LENGTH
+    original_ports = knockd_rotator_client.PORTS
+    
+    try:
+        # Directly patch the module variables with low entropy values
+        knockd_rotator_client.SEQUENCE_LENGTH = 5
+        knockd_rotator_client.PORTS = list(range(2000, 2011))  # 11 ports (2000-2010)
+        
         # This should raise ValueError due to low entropy
         with pytest.raises(ValueError) as excinfo:
             knockd_rotator_client.generate_knock_sequence("test_service")
@@ -111,6 +116,10 @@ def test_low_entropy():
         assert "Insufficient entropy" in str(
             excinfo.value
         ), "Error should mention insufficient entropy"
+    finally:
+        # Restore original values
+        knockd_rotator_client.SEQUENCE_LENGTH = original_sequence_length
+        knockd_rotator_client.PORTS = original_ports
 
 
 def test_consistent_sequence_generation():
