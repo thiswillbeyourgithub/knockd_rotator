@@ -6,6 +6,7 @@ import hashlib
 import datetime
 import socket
 import time
+import math
 
 __VERSION__: str = "2.0.0"
 
@@ -66,6 +67,25 @@ if len(PORTS) <= 3:
 # Sort ports for consistency
 PORTS.sort()
 
+# Minimum entropy required (in bits) for a secure knock sequence
+# 40 bits is roughly equivalent to a 12-character alphanumeric password
+MIN_ENTROPY_BITS = 40
+
+def calculate_knock_entropy(sequence_length: int, port_count: int) -> float:
+    """
+    Calculate the entropy of a knock sequence in bits.
+    
+    Args:
+        sequence_length: Length of the knock sequence
+        port_count: Number of possible ports to choose from
+    
+    Returns:
+        float: Entropy in bits (sequence_length * log2(port_count))
+    """
+    if port_count <= 1:
+        return 0
+    return sequence_length * math.log2(port_count)
+
 
 def calculate_shared_seed(offset: int = 0) -> int:
     """
@@ -107,7 +127,19 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
 
     Returns:
         Formatted sequence string (e.g. "1234:tcp 5678:udp 9012:tcp")
+        
+    Raises:
+        ValueError: If the configuration provides insufficient entropy
     """
+    # Calculate and check entropy before generating sequence
+    entropy_bits = calculate_knock_entropy(SEQUENCE_LENGTH, len(PORTS))
+    if entropy_bits < MIN_ENTROPY_BITS:
+        error_msg = (f"Insufficient entropy: {entropy_bits:.2f} bits. "
+                     f"Required minimum: {MIN_ENTROPY_BITS} bits. "
+                     f"Increase SEQUENCE_LENGTH or add more ports.")
+        sys.stderr.write(f"Error: {error_msg}\n")
+        raise ValueError(error_msg)
+        
     # Ensure service_name ends with _ROTATOR
     if not service_name.endswith("_ROTATOR"):
         service_name = f"{service_name}_ROTATOR"
@@ -199,6 +231,13 @@ def knock_ports(host: str, sequence: str):
 def main():
     """Main function to parse command line arguments and either generate a sequence or perform port knocking."""
     import argparse
+    
+    # Calculate and display entropy information
+    entropy_bits = calculate_knock_entropy(SEQUENCE_LENGTH, len(PORTS))
+    print(f"Knock sequence entropy: {entropy_bits:.2f} bits")
+    if entropy_bits < MIN_ENTROPY_BITS:
+        print(f"WARNING: Current configuration has low entropy ({entropy_bits:.2f} bits)")
+        print(f"Minimum recommended entropy: {MIN_ENTROPY_BITS} bits")
 
     # parse 'gene' as 'generate' etc
     argv = sys.argv
