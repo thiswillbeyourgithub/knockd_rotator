@@ -21,7 +21,7 @@ def reset_environment():
     os.environ["KNOCKD_ROTATOR_LENGTH"] = "10"
     os.environ["KNOCKD_ROTATOR_PORTS"] = "2000-65536"
     os.environ["KNOCKD_ROTATOR_PERIOD_MODULO"] = "3600"
-    os.environ["KNOCKD_ROTATOR_PORT_MODULO"] = "0"
+    os.environ["KNOCKD_ROTATOR_PROTO_MODULO"] = "0"
 
     yield
 

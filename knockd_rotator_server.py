@@ -253,7 +253,7 @@ def schedule_next_run_if_needed():
             important_vars = [
                 "KNOCKD_ROTATOR_SECRET",
                 "KNOCKD_ROTATOR_LENGTH",
-                "KNOCKD_ROTATOR_PORT_MODULO",
+                "KNOCKD_ROTATOR_PROTO_MODULO",
                 "KNOCKD_ROTATOR_PERIOD_MODULO",
                 "KNOCKD_ROTATOR_SERVER_INTERVAL",
             ]
@@ -287,7 +287,7 @@ def schedule_next_run_if_needed():
             important_vars = [
                 "KNOCKD_ROTATOR_SECRET",
                 "KNOCKD_ROTATOR_LENGTH",
-                "KNOCKD_ROTATOR_PORT_MODULO",
+                "KNOCKD_ROTATOR_PROTO_MODULO",
                 "KNOCKD_ROTATOR_PERIOD_MODULO",
                 "KNOCKD_ROTATOR_SERVER_INTERVAL",
             ]

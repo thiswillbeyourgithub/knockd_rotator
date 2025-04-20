@@ -26,10 +26,10 @@ elif len(SECRET) < 10:
     )
     sys.exit(1)
 
-# MODULO determines protocol selection:
-# - If MODULO is 0, always use TCP
-# - If MODULO > 0, port % MODULO even = tcp, odd = udp
-MODULO = int(os.environ.get("KNOCKD_ROTATOR_PORT_MODULO", 0))
+# PROTO_MODULO determines protocol selection:
+# - If PROTO_MODULO is 0, always use TCP
+# - If PROTO_MODULO > 0, port % PROTO_MODULO even = tcp, odd = udp
+PROTO_MODULO = int(os.environ.get("KNOCKD_ROTATOR_PROTO_MODULO", 0))
 
 # Period modulo determines how frequently the sequence changes (in seconds)
 # Default: 21600 (6 hours)
@@ -175,13 +175,13 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
 
     # Format the sequence with protocol determination
     # Use original format: PORT:tcp or PORT:udp
-    if MODULO == 0:
-        # When MODULO is 0, always use TCP
+    if PROTO_MODULO == 0:
+        # When PROTO_MODULO is 0, always use TCP
         sequence = " ".join([f"{port}:tcp" for port in ports])
     else:
         # Otherwise use modulo to determine protocol
         sequence = " ".join(
-            [f"{port}:{'tcp' if port % MODULO == 0 else 'udp'}" for port in ports]
+            [f"{port}:{'tcp' if port % PROTO_MODULO == 0 else 'udp'}" for port in ports]
         )
 
     # Validate the sequence meets our requirements
