@@ -12,6 +12,7 @@ __VERSION__: str = "2.0.0"
 # Constants for knock sequence generation
 # The sequence length determines how many ports are in the knock sequence
 SEQUENCE_LENGTH = int(os.environ.get("KNOCKD_ROTATOR_LENGTH", 10))
+assert SEQUENCE_LENGTH >= 5, "KNOCKD_ROTATOR_LENGTH must be at least 5"
 
 # The secret provides additional security against sequence guessing
 SECRET = os.environ.get("KNOCKD_ROTATOR_SECRET")
