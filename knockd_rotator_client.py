@@ -8,7 +8,7 @@ import socket
 import time
 import math
 
-__VERSION__: str = "2.0.0"
+__VERSION__: str = "3.0.0"
 
 # Constants for knock sequence generation
 # The sequence length determines how many ports are in the knock sequence

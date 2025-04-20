@@ -27,7 +27,7 @@ if __SHARED_SEED__ != current_seed:
     print("This could happen if the module was imported across a time period boundary.")
     sys.exit(1)
 
-__VERSION__: str = "1.0.1"
+__VERSION__: str = "3.0.0"
 
 # How frequently this server is expected to run (in seconds)
 SERVER_RUN_INTERVAL = int(
