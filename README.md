@@ -65,10 +65,13 @@ The system is configured through environment variables:
   - When `KNOCKD_ROTATOR_PORT_MODULO > 0`: Port modulo MODULO determines protocol (even = TCP, odd = UDP)
 - `KNOCKD_ROTATOR_PERIOD_MODULO`: Controls how frequently the sequence changes, in seconds (default: 21600, which is 6 hours)
 - `KNOCKD_ROTATOR_SERVER_INTERVAL`: How often the server script is expected to run, in seconds (default: 3600, which is 1 hour). This is used to know if we should fork the process to anticipate the next period.
-- `KNOCKD_ROTATOR_MIN_PORT`: Minimum port number in the generated knock sequences (default: 2000)
-- `KNOCKD_ROTATOR_MAX_PORT`: Maximum port number in the generated knock sequences (default: 65536)
+- `KNOCKD_ROTATOR_PORTS`: List of ports or port ranges to use for knock sequences (default: "2000-65536")
+  - Format: Comma-separated list of either single ports or ranges (e.g., "2000-3000,4000,5000-6000")
+  - Both ends of ranges are included
+  - At least 2 ports must be specified
+  - Duplicate ports are automatically removed
 
-Port numbers are generated in the range 2000-65535 by default to avoid requiring elevated privileges. You can adjust this range with the `KNOCKD_ROTATOR_MIN_PORT` and `KNOCKD_ROTATOR_MAX_PORT` environment variables if needed (for example, if certain port ranges are blocked by firewalls or require special permissions).
+Port numbers are generated in the range 2000-65536 by default to avoid requiring elevated privileges. You can adjust this with the `KNOCKD_ROTATOR_PORTS` environment variable if needed (for example, if certain port ranges are blocked by firewalls or require special permissions). Using 3 or fewer ports will significantly reduce security and generate a warning.
 
 ## Example knockd.conf Section
 

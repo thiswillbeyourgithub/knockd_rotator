@@ -37,10 +37,33 @@ if "KNOCKD_ROTATOR_PERIOD_MODULO" not in os.environ:
         "Warning: KNOCKD_ROTATOR_PERIOD_MODULO not set, using default of 21600 (6 hours)\n"
     )
 
-# Port range for sequence generation
-# Default: 2000-65535 to avoid requiring elevated privileges
-MIN_PORT = int(os.environ.get("KNOCKD_ROTATOR_MIN_PORT", 2000))
-MAX_PORT = int(os.environ.get("KNOCKD_ROTATOR_MAX_PORT", 65536))
+# Port list for sequence generation
+# Default: 2000-65536 range to avoid requiring elevated privileges
+port_str = os.environ.get("KNOCKD_ROTATOR_PORTS", "2000-65536")
+PORTS = []
+for part in port_str.split(","):
+    part = part.strip()
+    if "-" in part:
+        start, end = part.split("-", 1)
+        # Include both ends of the range
+        PORTS.extend(list(range(int(start), int(end) + 1)))
+    else:
+        PORTS.append(int(part))
+
+# Ensure no duplicates
+if len(PORTS) != len(set(PORTS)):
+    sys.stderr.write("Warning: Duplicate ports in KNOCKD_ROTATOR_PORTS will be ignored\n")
+    PORTS = list(set(PORTS))
+
+# Ensure at least 2 ports
+assert len(PORTS) >= 2, "KNOCKD_ROTATOR_PORTS must contain at least 2 ports"
+
+# Warn if 3 or fewer ports
+if len(PORTS) <= 3:
+    sys.stderr.write("Warning: Only {} ports available. This significantly reduces security.\n".format(len(PORTS)))
+
+# Sort ports for consistency
+PORTS.sort()
 
 
 def calculate_shared_seed(offset: int = 0) -> int:
@@ -104,9 +127,10 @@ def generate_knock_sequence(service_name: str, offset: int = 0) -> str:
         # Take first 8 hex chars and convert to decimal
         decimal = int(hash_value[:8], 16)
 
-        # Scale to range MIN_PORT-MAX_PORT (defaults to 2000-65535)
-        port = (decimal % (MAX_PORT - MIN_PORT)) + MIN_PORT
-        assert port >= MIN_PORT and port <= MAX_PORT
+        # Select a port from our port list
+        port_index = decimal % len(PORTS)
+        port = PORTS[port_index]
+        assert port in PORTS, f"Port {port} not in allowed port list"
         ports.append(port)
 
     # Format the sequence with protocol determination
