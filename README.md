@@ -59,7 +59,7 @@ A server-side tool that:
 The system is configured through environment variables:
 
 - `KNOCKD_ROTATOR_LENGTH`: Number of ports in the knock sequence (default: 10)
-- `KNOCKD_ROTATOR_SECRET`: The shared secret used to generate sequences (required, minimum 10 characters)
+- `KNOCKD_ROTATOR_SECRET`: The shared secret used to generate sequences (required, minimum 10 characters). You can generate a strong secret using: `openssl rand -hex 64`
 - `KNOCKD_ROTATOR_PROTO_MODULO`: Controls TCP/UDP protocol selection:
   - When `KNOCKD_ROTATOR_PROTO_MODULO = 0` (default): All knocks use TCP protocol
   - When `KNOCKD_ROTATOR_PROTO_MODULO > 0`: For each port of the sequence, the port modulo `KNOCKD_ROTATOR_PROTO_MODULO` determines protocol (even = TCP, odd = UDP)
