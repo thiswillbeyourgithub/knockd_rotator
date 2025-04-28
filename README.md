@@ -41,6 +41,7 @@ A lightweight client-side tool that both generates and executes knock sequences:
     - Usage: `./knockd_rotator_client.py knock <host> <service_name> [--offset <n>]`
 - Automatically appends "_ROTATOR" to service names if not already present
 - Supports time period offsets to generate past or future sequences
+- Note: A Zsh reimplementation of the client is available in `knockd_rotator_client.zsh`. It has not been as thoroughly tested as the Python script but should function similarly.
 
 ### knockd_rotator_server.py (v1.0.1)
 
