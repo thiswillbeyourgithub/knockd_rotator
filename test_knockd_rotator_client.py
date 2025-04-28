@@ -214,3 +214,9 @@ def test_subprocess_call():
 
     # Check if it generates a sequence (non-empty output)
     assert len(result.stdout.strip()) > 0, "Client should output a sequence"
+
+
+# Allow running tests directly using `python test_knockd_rotator_client.py`
+if __name__ == "__main__":
+    # Pass the current file path to pytest
+    pytest.main([__file__])
