@@ -1,4 +1,4 @@
-# Knock Rotator
+# Knockd Rotator
 
 A security-enhanced port knocking system with rotating knock sequences.
 
