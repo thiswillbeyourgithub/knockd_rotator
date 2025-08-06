@@ -27,7 +27,7 @@ The shared sequence generation algorithm ensures both sides produce identical se
 
 ## Components
 
-### knockd_rotator_client.py (v1.0.1)
+### knockd_rotator_client.py
 
 A lightweight client-side tool that both generates and executes knock sequences:
 
@@ -43,7 +43,7 @@ A lightweight client-side tool that both generates and executes knock sequences:
 - Supports time period offsets to generate past or future sequences
 - Note: A Zsh reimplementation of the client is available in `knockd_rotator_client.zsh`. It has not been as thoroughly tested as the Python script but should function similarly.
 
-### knockd_rotator_server.py (v1.0.1)
+### knockd_rotator_server.py
 
 A server-side tool that:
 
