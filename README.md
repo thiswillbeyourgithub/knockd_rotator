@@ -101,7 +101,7 @@ stop_command  = /sbin/iptables -D INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
 - **Period Boundary Handling**: The server automatically schedules an additional run at period transitions to ensure timely sequence updates
 - **Service Verification**: Confirms knockd is running properly after configuration changes
 - **Multiple Services**: Support for multiple different rotator services in one config file
-- **Time Period Offsets**: Generate past or future sequences with the `--offset` parameter. This is useful to generate sequences that were valid at passed times if you know that the server side script failed to run for some reason.
+- **Time Period Offsets**: Generate past or future sequences with the `--offset` parameter. This is useful to generate sequences that were valid at past times if you know that the server side script failed to run for some reason.
 
 ## Notes
 
